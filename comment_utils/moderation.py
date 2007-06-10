@@ -69,6 +69,43 @@ def register_for_moderation(model, enable_field_name=None, auto_moderate=None, a
     this setting should be a valid Akismet API key for use in
     performing Akismet spam checks.
     
+    Examples
+    --------
+    
+    Consider the following model::
+    
+        class Entry(models.Model):
+            title = models.CharField(maxlength=250)
+            slug = models.SlugField(prepopulate_from=('title',))
+            pub_date = models.DateTimeField()
+            enable_comments = models.BooleanField()
+            body = models.TextField()
+    
+    To set up automatic Akismet moderation of Entries, register like so::
+    
+        from comment_utils.moderation import register_for_moderation
+        register_for_moderation(Entry, akismet=True)
+    
+    To have comments automatically rejected when the
+    ``enable_comments`` field is ``False``::
+    
+        register_for_moderation(Entry, enable_field_name='enable_comments')
+    
+    To have comments automatically be marked non-public when posted to
+    Entries published more than ``settings.COMMENTS_MODERATE_AFTER``
+    days ago::
+    
+        register_for_moderation(Entry, auto_moderate='pub_date')
+    
+    To use all three of these options together::
+    
+        register_for_moderation(Entry, akismet=True, auto_moderate='pub_date',
+                                enable_field_name='enable_comments')
+    
+    Note that ``auto_close`` and ``auto_moderate`` are exclusive of
+    one another; if both are used, ``auto_close`` will "win" and new
+    comments will be deleted, rather than be marked non-public.
+    
     """
     key = '%s.%s' % (model._meta.app_label, model._meta.module_name)
     if not (akismet or auto_close or auto_moderate or email_notification or enable_field_name):
