@@ -13,7 +13,7 @@ from django.contrib.sites.models import Site
 registered_models = {}
 
 
-def register(model, enable_field_name=None, auto_moderate=None, akismet=False, email_notification=False):
+def register_for_moderation(model, enable_field_name=None, auto_moderate=None, akismet=False, email_notification=False):
     """
     Registers a model for automatic moderation and management.
     
