@@ -13,7 +13,7 @@ from django.contrib.sites.models import Site
 registered_models = {}
 
 
-def register_for_moderation(model, enable_field_name=None, auto_moderate=None, akismet=False, email_notification=False):
+def register_for_moderation(model, enable_field_name=False, auto_moderate=False, akismet=False, email_notification=False):
     """
     Registers a model for automatic moderation and management.
     
@@ -32,7 +32,8 @@ def register_for_moderation(model, enable_field_name=None, auto_moderate=None, a
             automatically rejected when a certain number of days after
             the original publication have elapsed. The value of this
             argument should be a ``DateTimeField`` on the model which
-            indicates the publication date.
+            indicates the publication date; do not pass this argument
+            if you do not want to enable it.
     
         auto_moderate
             Causes new comments to instances of this model to
@@ -40,7 +41,8 @@ def register_for_moderation(model, enable_field_name=None, auto_moderate=None, a
             certain number of days after the original publication have
             elapsed. The value of this argument should be a
             ``DateTimeField`` on the model which indicates the
-            publication date.
+            publication date. Do not pass this argument if you do not
+            want to enable it.
     
         email_notification
             Causes an email to be sent to each person listed in the
@@ -53,7 +55,8 @@ def register_for_moderation(model, enable_field_name=None, auto_moderate=None, a
             ``True`` when comments are open for an instance of the
             model, and ``False`` when comments are closed. When
             comments are closed, no new comments on that object will
-            be accepted.
+            be accepted. Do not pass this argument if you do not want
+            to enable it.
     
     At least one option must be enabled; passing ``False`` values for
     all options, or passing no options, will raise ``ValueError``.
@@ -93,7 +96,8 @@ def register_for_moderation(model, enable_field_name=None, auto_moderate=None, a
     
     To have comments automatically be marked non-public when posted to
     Entries published more than ``settings.COMMENTS_MODERATE_AFTER``
-    days ago::
+    days ago (using the ``pub_date`` field to determine the date of
+    publication)::
     
         register_for_moderation(Entry, auto_moderate='pub_date')
     
