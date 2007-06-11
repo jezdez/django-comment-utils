@@ -127,6 +127,7 @@ def disallowed_by_field(content_object, field_name):
 def auto_moderated(content_object, field_name):
     return not (datetime.datetime.today() - datetime.timedelta(settings.COMMENTS_MODERATE_AFTER) <= getattr(content_object, field_name))
 
+
 def akismet_flagged(instance):
     from akismet import Akismet
     akismet_api = Akismet(key=settings.AKISMET_API_KEY,
@@ -138,6 +139,7 @@ def akismet_flagged(instance):
                          'user_agent': '' }
         return akismet_api.comment_check(instance.comment, data=akismet_data, build_data=True)
     return False
+
 
 def send_email_notification(instance, object_type):
     recipient_list = [manager_tuple[1] for manager_tuple in settings.MANAGERS]
@@ -247,3 +249,8 @@ def moderate_comments_post_save(sender, instance):
         return
     if moderation_options['email_notification']:
         send_email_notification(instance, content_objects._meta.module_name)
+
+dispatcher.connect(moderate_comments_pre_save, sender=Comment, signal=signals.pre_save)
+dispatcher.connect(moderate_comments_pre_save, sender=FreeComment, signal=signals.pre_save)
+dispatcher.connect(moderate_comments_post_save, sender=Comment, signal=signals.post_save)
+dispatcher.connect(moderate_comments_post_save, sender=FreeComment, signal=signals.post_save)
