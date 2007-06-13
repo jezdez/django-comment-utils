@@ -148,7 +148,73 @@ class DoPublicCommentCount(comments.DoCommentCount):
             raise template.TemplateSyntaxError("second argument to '%s tag must be in the format app_name.model_name'" % bits[0])
         model = get_model(app_name, model_name)
         if model is None:
-            raise template.TemplateSyntaxError("'%s' tag got invalid model '%s.%s'" % (app_name, model_name))
+            raise template.TemplateSyntaxError("'%s' tag got invalid model '%s.%s'" % (bits[0], app_name, model_name))
+        content_type = ContentType.objects.get_for_model(model)
+        var_name, object_id = None, None
+        if bits[4] != 'as':
+            raise template.TemplateSyntaxError("fourth argument to '%s' tag must be 'as'" % bits[0])
+        return PublicCommentCountNode(app_name, model_name, var_name, object_id, bits[5], self.free)
+
+
+class CommentFormNode(template.Node):
+    def __init__(self, content_type, var_name, object_id, free):
+        self.content_type, self.free = content_type, free
+        self.var_name, self.object_id = var_name, object_id
+
+    def render(self, context):
+        if self.var_name is not None:
+            try:
+                object_id = template.resolve_variable(self.var_name, context)
+            except template.VariableDoesNotExist:
+                return ''
+        try:
+            content_object = self.content_type.get_object_for_this_type(pk=self.object_id)
+        except ObjectDoesNotExist:
+            return ''
+        if hasattr(content_object) and not content_object.comments_allowed():
+            context['comments_closed'] = True
+            return ''
+        context['comments_closed'] = False
+        return comments.CommentFormNode(self.content_type, self.var_name, self.object_id, self.free).render(context)
+
+
+class DoCommentForm(object):
+    """
+    Displays a comment form, or not, based on whether the object is
+    currently allowing comments.
+
+    Syntax::
+
+        {% moderated_comment_form for app_name.model_name object_id %}
+
+    Example::
+
+        {% moderated_comment_form for weblog.entry 12 %}
+
+    The ``object_id`` argument can be either a literal integer or a
+    context variable containing an object id.
+
+    To display a form for ``FreeComment`` (the unregistered comments
+    model), call this tag as ``moderated_free_comment_form`` instead
+    of ``moderated_comment_form``.
+    
+    """
+    def __init__(self, free):
+        self.free = free
+
+    def __call__(self, parser, token):
+        bits = token.contents.split()
+        if len(bits) not in 4, 6):
+            raise template.TemplateSyntaxError("'%s' tag takes three or five arguments" % bits[0])
+        if bits[1] != 'for':
+            raise template.TemplateSyntaxError("first argument to '%s' tag must be 'for'" % bits[0])
+        try:
+            app_name, model_name = bits[2].split('.')
+        except ValueError:
+            raise template.TemplateSyntaxError("second argument to '%s' tag must be in the format 'app_name.model_name'" % bits[0])
+        model = get_model(app_name, model_name)
+        if model is None:
+            raise template.TemplateSyntaxError("'%s' tag got invalid model '%s.%s'" % (bits[0], app_name, model_name)
         content_type = ContentType.objects.get_for_model(model)
         var_name, object_id = None, None
         if bits[3].isdigit():
@@ -159,13 +225,12 @@ class DoPublicCommentCount(comments.DoCommentCount):
                 raise template.TemplateSyntaxError("'%s' tag got reference to %s object with id %s, which doesn't exist" % (bits[0], content_type.name, object_id))
         else:
             var_name = bits[3]
-        if bits[4] != 'as':
-            raise template.TemplateSyntaxError("fourth argument to '%s' tag must be 'as'" % bits[0])
-        return PublicCommentCountNode(app_name, model_name, var_name, object_id, bits[5], self.free)
-
+        return CommentFormNode(content_type, var_name, object_id, self.free)
 
 register = template.Library()
 register.tag('get_public_comment_list', DoPublicCommentList(False))
 register.tag('get_public_free_comment_list', DoPublicCommentList(True))
 register.tag('get_public_comment_count', DoPublicCommentCount(False))
 register.tag('get_public_free_comment_count', DoPublicCommentCount(True))
+register.tag('moderated_comment_form', DoCommentForm(False))
+register.tag('moderated_free_comment_form', DoCommentForm(True)
