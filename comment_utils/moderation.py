@@ -125,6 +125,11 @@ class ModeratedModel(object):
         self.model = model
     
     def allow(self, comment, content_object):
+        """
+        Determines whether a given comment is allowed to be posted on
+        a given object.
+        
+        """
         if self.enable_field:
             if not getattr(content_object, self.enable_field):
                 return False
@@ -134,6 +139,12 @@ class ModeratedModel(object):
         return True
     
     def moderate(self, comment, content_object):
+        """
+        Determines whether a given comment on a given object should be
+        allowed to show up immediately, or should be marked non-public
+        and await approval.
+        
+        """
         if self.auto_moderate_field and self.moderate_after:
             if datetime.date.today() - self.auto_moderate_after > getattr(content_object, self.auto_moderate_field):
                 return True
@@ -151,6 +162,13 @@ class ModeratedModel(object):
         return False
 
     def email(self, comment, content_object):
+        """
+        Emails notification of a new comment to site staff when email
+        notifications have been requested.
+        
+        """
+        if not self.email_notification:
+            return
         recipient_list = [manager_tuple[1] for manager_tuple in settings.MANAGERS]
         t = loader.get_template('comment_utils/comment_notification_email.txt')
         c = Context({ 'comment': comment,
@@ -208,6 +226,11 @@ class CommentModerator(object):
         self._registry = {}
     
     def register(self, model_or_iterable, moderation_class):
+        """
+        Registers a model for comment moderation, using a particular
+        moderation class.
+        
+        """
         if issubclass(model_or_iterable, Model):
             model_or_iterable = [model_or_iterable]
         for model in model_or_iterable:
@@ -217,6 +240,11 @@ class CommentModerator(object):
             self._registry[model_key] = moderation_class(model)
     
     def unregister(self, model_or_iterable):
+        """
+        Removes a model from the list of models whose comments will be
+        moderated.
+        
+        """
         if issubclass(model_or_iterable, Model):
             model_or_iterable = [model_or_iterable]
         for model in model_or_iterable:
@@ -225,6 +253,11 @@ class CommentModerator(object):
                 raise NotModerated("The model '%s.%s' is not currently being moderated" % model_key)
     
     def pre_save_moderation(self, sender, instance):
+        """
+        Applies any necessary pre-save moderation steps to new
+        comments.
+        
+        """
         if instance.id:
             return
         content_object = instance.get_content_object()
@@ -237,8 +270,13 @@ class CommentModerator(object):
             return
         if moderation_class.moderate(instance, content_object):
             instance.is_public = False
-
+    
     def post_save_moderation(self, sender, instance):
+        """
+        Applies any necessary post-save moderation steps to new
+        comments.
+        
+        """
         content_object = instance.get_content_object()
         model_key = get_model_key(content_object)
         if model_key not in self._registry:
