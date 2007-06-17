@@ -123,11 +123,11 @@ class ModeratedModel(object):
         self.model = model
     
     def allow(self, comment, content_object):
-        if self.auto_close_field and self.close_after:
-            if datetime.date.today() - self.auto_close_after > getattr(content_object, self.auto_close_field):
-                return False
         if self.enable_field is not None:
             if not getattr(content_object, self.enable_field):
+                return False
+        if self.auto_close_field and self.close_after:
+            if datetime.date.today() - self.auto_close_after > getattr(content_object, self.auto_close_field):
                 return False
         return True
     
