@@ -123,7 +123,7 @@ class ModeratedModel(object):
         self.model = model
     
     def allow(self, comment, content_object):
-        if self.enable_field is not None:
+        if self.enable_field:
             if not getattr(content_object, self.enable_field):
                 return False
         if self.auto_close_field and self.close_after:
