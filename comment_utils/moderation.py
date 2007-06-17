@@ -28,6 +28,7 @@ class NotModerated(Exception):
     attempting to be unregistered.
     
     """
+    pass
 
 class ModeratedModel(object):
     """
