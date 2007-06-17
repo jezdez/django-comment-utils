@@ -30,6 +30,7 @@ class NotModerated(Exception):
     """
     pass
 
+
 class ModeratedModel(object):
     """
     Encapsulates comment-moderation options for a given model.
