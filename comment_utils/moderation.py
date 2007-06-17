@@ -238,10 +238,9 @@ class CommentModerator(object):
         from the comment models.
         
         """
-        dispatcher.connect(self.pre_save_moderation, sender=Comment, signal=signals.pre_save)
-        dispatcher.connect(self.post_save_moderation, sender=Comment, signal=signals.post_save)
-        dispatcher.connect(self.pre_save_moderation, sender=FreeComment, signal=signals.pre_save)
-        dispatcher.connect(self.post_save_moderation, sender=FreeComment, signal=signals.post_save)
+        for model in (Comment, FreeComment):
+            dispatcher.connect(self.pre_save_moderation, sender=model, signal=signals.pre_save)
+            dispatcher.connect(self.post_save_moderation, sender=model, signal=signals.post_save)
     
     def register(self, model_or_iterable, moderation_class):
         """
