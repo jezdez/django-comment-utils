@@ -287,6 +287,8 @@ class CommentModerator(object):
         moderation_class.email(instance, content_object)
 
 
+# Import this instance in your own code to use in registering
+# your models for moderation.
 moderator = CommentModerator()
 
 
