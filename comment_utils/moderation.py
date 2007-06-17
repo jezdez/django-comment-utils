@@ -246,7 +246,9 @@ class CommentModerator(object):
             return
         moderation_class.email(instance, content_object)
 
+
 moderator = CommentModerator()
+
 
 dispatcher.connect(moderater.pre_save_moderation, sender=Comment, signal=signals.pre_save)
 dispatcher.connect(moderator.post_save_moderation, sender=Comment, signal=signals.post_save)
