@@ -73,6 +73,11 @@ class ModeratedModel(object):
             ``auto_close_field`` after which new comments for an
             object should be disallowed.
     
+        email_notification
+            If ``True``, any new comment on an object of this model
+            which survives moderation will generate an email to site
+            staff.
+    
         enable_field
             If this is set to the name of a ``BooleanField`` on the
             model for which comments are being moderated, new comments
@@ -102,13 +107,13 @@ class ModeratedModel(object):
             If email notification of the new comment should be sent to
             site staff or moderators, this method is responsible for
             sending the email.
-
+    
         moderate
             Should return ``True`` if the comment should be moderated
             (in which case its ``is_public`` field will be set to
             ``False`` before saving), and ``False`` otherwise (in
             which case the ``is_public`` field will not be changed).
-
+    
     Subclasses which want to introspect the model for which comments
     are being moderated can do so through the attribute ``_model``,
     which will be the model class.
@@ -118,6 +123,7 @@ class ModeratedModel(object):
     auto_close_field = None
     auto_moderate_field = None
     close_after = None
+    email_notification = False
     enable_field = None
     moderate_after = None
     
