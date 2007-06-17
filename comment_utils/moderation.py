@@ -224,6 +224,18 @@ class CommentModerator(object):
     """
     def __init__(self):
         self._registry = {}
+        self.connect()
+
+    def connect(self):
+        """
+        Hooks up the moderation methods to pre- and post-save signals
+        from the comment models.
+        
+        """
+        dispatcher.connect(self.pre_save_moderation, sender=Comment, signal=signals.pre_save)
+        dispatcher.connect(self.post_save_moderation, sender=Comment, signal=signals.post_save)
+        dispatcher.connect(self.pre_save_moderation, sender=FreeComment, signal=signals.pre_save)
+        dispatcher.connect(self.post_save_moderation, sender=FreeComment, signal=signals.post_save)
     
     def register(self, model_or_iterable, moderation_class):
         """
@@ -291,8 +303,3 @@ class CommentModerator(object):
 # your models for moderation.
 moderator = CommentModerator()
 
-
-dispatcher.connect(moderater.pre_save_moderation, sender=Comment, signal=signals.pre_save)
-dispatcher.connect(moderator.post_save_moderation, sender=Comment, signal=signals.post_save)
-dispatcher.connect(moderater.pre_save_moderation, sender=FreeComment, signal=signals.pre_save)
-dispatcher.connect(moderator.post_save_moderation, sender=FreeComment, signal=signals.post_save)
