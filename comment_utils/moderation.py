@@ -253,7 +253,7 @@ class CommentModerator(object):
         for model in model_or_iterable:
             model_key = get_model_key(model)
             if model_key in self._registry:
-                raise AlreadyModerated("The model '%s.%s' is already being moderated" % model_key)
+                raise AlreadyModerated("The model '%s' is already being moderated" % model_key)
             self._registry[model_key] = moderation_class(model)
     
     def unregister(self, model_or_iterable):
@@ -267,7 +267,7 @@ class CommentModerator(object):
         for model in model_or_iterable:
             model_key = get_model_key(model)
             if model_key not in self._registry:
-                raise NotModerated("The model '%s.%s' is not currently being moderated" % model_key)
+                raise NotModerated("The model '%s' is not currently being moderated" % model_key)
     
     def pre_save_moderation(self, sender, instance):
         """
