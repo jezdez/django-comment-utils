@@ -42,8 +42,26 @@ And finally register it for moderation::
     
     moderator.register(Entry, EntryModerator)
 
-For a full list of built-in moderation options, see the
-``ModeratedModel`` class.
+This sample class would apply several moderation steps to each new
+comment submitted on an Entry:
+
+* If the entry's ``enable_comments`` field is set to ``False``, the comment will be
+  rejected (immediately deleted).
+
+* If more then 30 days have passed since the entry's ``pub_date``, the
+  comment will automatically have its ``is_public`` field set to ``False``.
+
+* If the comment would otherwise survive and be made public, it will
+  be submitted to an Akismet spam check (requires the Python Akismet
+  module and an Akismet API key); if Akismet thinks the comment is
+  spam, its ``is_public`` field will be set to ``False``.
+
+* If the comment is successfully posted, an email notification of the
+  comment will be sent to site staff.
+
+For a full list of built-in moderation options and other
+configurability, see the documentation for the ``ModeratedModel``
+class.
 
 """
 
