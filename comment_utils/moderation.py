@@ -268,6 +268,7 @@ class CommentModerator(object):
             model_key = get_model_key(model)
             if model_key not in self._registry:
                 raise NotModerated("The model '%s' is not currently being moderated" % model_key)
+            del self._registry[model_key]
     
     def pre_save_moderation(self, sender, instance):
         """
