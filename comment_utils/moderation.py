@@ -273,18 +273,16 @@ class CommentModerator(object):
     ``register`` method, passing the model class and a moderation
     class (which should be a subclass of ``ModeratedModel``). Note
     that both of these should be the actual classes, not instances of
-    the classes. If the model is already registered for moderation,
-    ``AlreadyModerated`` will be raised.
-
+    the classes.
+    
     To cease moderation for a model, call the ``unregister`` method,
-    passing the model class. If the model is not currently being
-    moderated, ``NotModerated`` will be raised.
-
+    passing the model class.
+    
     For convenience, both ``register`` and ``unregister`` can also
     accept a list of model classes in place of a single model; this
     allows easier registration of multiple models with the same
     ``ModeratedModel`` class.
-
+    
     The actual moderation is applied in two phases: one prior to
     saving a new comment, and the other immediately after saving. The
     pre-save moderation may mark a comment as non-public or mark it to
@@ -297,7 +295,7 @@ class CommentModerator(object):
     def __init__(self):
         self._registry = {}
         self.connect()
-
+    
     def connect(self):
         """
         Hooks up the moderation methods to pre- and post-save signals
@@ -310,8 +308,11 @@ class CommentModerator(object):
     
     def register(self, model_or_iterable, moderation_class):
         """
-        Registers a model for comment moderation, using a particular
-        moderation class.
+        Registers a model or a list of models for comment moderation,
+        using a particular moderation class.
+        
+        Raises ``AlreadyModerated`` if any of the models are already
+        registered.
         
         """
         if issubclass(model_or_iterable, Model):
@@ -324,8 +325,11 @@ class CommentModerator(object):
     
     def unregister(self, model_or_iterable):
         """
-        Removes a model from the list of models whose comments will be
-        moderated.
+        Removes a model or a list of models from the list of models
+        whose comments will be moderated.
+        
+        Raises ``NotModerated`` if any of the models are not currently
+        registered for moderation.
         
         """
         if issubclass(model_or_iterable, Model):
