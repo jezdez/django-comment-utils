@@ -6,11 +6,8 @@ from django.db.models import signals
 from django.dispatch import dispatcher
 from django.template import Context, loader
 from django.contrib.comments.models import Comment, FreeComment
+from django.contrib.contenttypes.models import ContentType
 from django.contrib.sites.models import Site
-
-
-def get_model_key(model):
-    return "%s.%s" % (model._meta.app_label, model._meta.module_name)
 
 
 class AlreadyModerated(Exception):
@@ -251,10 +248,10 @@ class CommentModerator(object):
         if issubclass(model_or_iterable, Model):
             model_or_iterable = [model_or_iterable]
         for model in model_or_iterable:
-            model_key = get_model_key(model)
-            if model_key in self._registry:
-                raise AlreadyModerated("The model '%s' is already being moderated" % model_key)
-            self._registry[model_key] = moderation_class(model)
+            ctype_id = ContentType.objects.get_for_model(model).id
+            if ctype_id in self._registry:
+                raise AlreadyModerated("The model '%s' is already being moderated" % model._meta.module_name)
+            self._registry[ctype_id] = moderation_class(model)
     
     def unregister(self, model_or_iterable):
         """
@@ -265,10 +262,10 @@ class CommentModerator(object):
         if issubclass(model_or_iterable, Model):
             model_or_iterable = [model_or_iterable]
         for model in model_or_iterable:
-            model_key = get_model_key(model)
-            if model_key not in self._registry:
-                raise NotModerated("The model '%s' is not currently being moderated" % model_key)
-            del self._registry[model_key]
+            ctype_id = ContentType.objects.get_for_model(model).id
+            if ctype_id not in self._registry:
+                raise NotModerated("The model '%s' is not currently being moderated" % model._meta.module_name)
+            del self._registry[ctype_id]
     
     def pre_save_moderation(self, sender, instance):
         """
@@ -276,13 +273,10 @@ class CommentModerator(object):
         comments.
         
         """
-        if instance.id:
+        if instance.id or (instance.content_type_id not in self._registry)
             return
         content_object = instance.get_content_object()
-        model_key = get_model_key(content_object)
-        if model_key not in self._registry:
-            return
-        moderation_class = self._registry(model_key)
+        moderation_class = self._registry(instance.content_type_id)
         if not moderation_class.allow(instance, content_object): # Comment will get deleted in post-save hook.
             instance.moderation_disallowed = True
             return
@@ -295,10 +289,9 @@ class CommentModerator(object):
         comments.
         
         """
-        content_object = instance.get_content_object()
-        model_key = get_model_key(content_object)
-        if model_key not in self._registry:
+        if instance.content_type_id not in self._registry:
             return
+        content_object = instance.get_content_object()
         if instance.moderation_disallowed:
             instance.delete()
             return
