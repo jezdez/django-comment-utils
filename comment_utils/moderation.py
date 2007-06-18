@@ -291,11 +291,11 @@ class CommentModerator(object):
         """
         if instance.content_type_id not in self._registry:
             return
-        content_object = instance.get_content_object()
         if instance.moderation_disallowed:
             instance.delete()
             return
         moderation_class = self._registry[instance.content_type_id]
+        content_object = instance.get_content_object()
         moderation_class.email(instance, content_object)
 
 
