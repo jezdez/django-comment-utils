@@ -125,7 +125,7 @@ class ModeratedModel(object):
     moderate_after = None
     
     def __init__(self, model):
-        self.model = model
+        self._model = model
     
     def allow(self, comment, content_object):
         """
