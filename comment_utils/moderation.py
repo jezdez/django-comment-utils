@@ -1,3 +1,52 @@
+"""
+A generic comment-moderation system which allows configuration of
+moderation options on a per-model basis.
+
+To use, do two things:
+
+1. Create or import a subclass of ``ModeratedModel`` defining the
+   options you want.
+
+2. Import ``moderator`` from this module and register one or more
+   models, passing the models and the ``ModeratedModel`` options class
+   you want to use.
+
+
+Example
+-------
+
+First, we define a simple model class which might represent entries in
+a weblog::
+    
+    from django.db import models
+    
+    class Entry(models.Model):
+        title = models.CharField(maxlength=250)
+        body = models.TextField()
+        pub_date = models.DateField()
+        enable_comments = models.BooleanField()
+
+Then we create a ``ModeratedModel`` subclass specifying some
+moderation options::
+    
+    from comment_utils.moderation import ModeratedModel, moderator
+    
+    class EntryModerator(ModeratedModel):
+        akismet = True
+        auto_moderate_field = 'pub_date'
+        email_notification = True
+        enable_field = 'enable_comments'
+        moderate_after = 30
+
+And finally register it for moderation::
+    
+    moderator.register(Entry, EntryModerator)
+
+For a full list of built-in moderation options, see the
+``ModeratedModel`` class.
+
+"""
+
 import datetime
 
 from django.conf import settings
