@@ -199,6 +199,9 @@ class ModeratedModel(object):
         """
         Determines whether a given comment is allowed to be posted on
         a given object.
+
+        Returns ``True`` if the comment should be allowed, ``False
+        otherwise.
         
         """
         if self.enable_field:
@@ -214,6 +217,9 @@ class ModeratedModel(object):
         Determines whether a given comment on a given object should be
         allowed to show up immediately, or should be marked non-public
         and await approval.
+
+        Returns ``True`` if the comment should be moderated (marked
+        non-public), ``False`` otherwise.
         
         """
         if self.auto_moderate_field and self.moderate_after:
