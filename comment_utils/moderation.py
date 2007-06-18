@@ -350,6 +350,7 @@ class CommentModerator(object):
             return
         if moderation_class.moderate(instance, content_object):
             instance.is_public = False
+        moderation_class.email(instance, content_object)
     
     def post_save_moderation(self, sender, instance):
         """
@@ -362,9 +363,6 @@ class CommentModerator(object):
         if instance.moderation_disallowed:
             instance.delete()
             return
-        moderation_class = self._registry[instance.content_type_id]
-        content_object = instance.get_content_object()
-        moderation_class.email(instance, content_object)
 
 
 # Import this instance in your own code to use in registering
