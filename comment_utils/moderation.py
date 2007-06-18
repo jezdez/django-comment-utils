@@ -43,8 +43,8 @@ And finally register it for moderation::
 This sample class would apply several moderation steps to each new
 comment submitted on an Entry:
 
-* If the entry's ``enable_comments`` field is set to ``False``, the comment will be
-  rejected (immediately deleted).
+* If the entry's ``enable_comments`` field is set to ``False``, the
+  comment will be rejected (immediately deleted).
 
 * If the comment is allowed to post, it will be submitted to an
   Akismet spam check (requires the Python Akismet module and an
