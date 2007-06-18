@@ -4,7 +4,11 @@ inheit from.
 
 """
 
-from django.db import models
+
+from django.db import backend, connection, models
+from django.contrib.comments import models as comment_models
+from django.contrib.contenttypes.models import ContentType
+
 
 class CommentedObjectManager(models.Manager):
     """
@@ -29,9 +33,6 @@ class CommentedObjectManager(models.Manager):
         (``FreeComment``).
         
         """
-        from django.db import backend, connection
-        from django.contrib.comments import models as comment_models
-        from django.contrib.contenttypes.models import ContentType
         if free:
             comment_opts = comment_models.FreeComment._meta
         else:
