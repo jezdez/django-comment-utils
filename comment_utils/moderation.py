@@ -33,6 +33,7 @@ moderation options::
     
     class EntryModerator(ModeratedModel):
         akismet = True
+        email_notification = True
         enable_field = 'enable_comments'
 
 And finally register it for moderation::
