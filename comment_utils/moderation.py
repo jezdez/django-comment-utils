@@ -70,7 +70,7 @@ import datetime
 
 from django.conf import settings
 from django.core.mail import send_mail
-from django.db.models import signals
+from django.db.models import Model, signals
 from django.dispatch import dispatcher
 from django.template import Context, loader
 from django.contrib.comments.models import Comment, FreeComment
@@ -249,7 +249,7 @@ class CommentModerator(object):
         recipient_list = [manager_tuple[1] for manager_tuple in settings.MANAGERS]
         t = loader.get_template('comment_utils/comment_notification_email.txt')
         c = Context({ 'comment': comment,
-                      'content_object': content_object)
+                      'content_object': content_object })
         subject = '[%s] New comment posted on "%s"' % (Site.objects.get_current().name,
                                                           content_object)
         message = t.render(c)
@@ -400,10 +400,11 @@ class Moderator(object):
         comments.
         
         """
-        if instance.id or (instance.content_type_id not in self._registry)
+        ctype_id = int(instance.content_type_id)
+        if instance.id or (ctype_id not in self._registry):
             return
         content_object = instance.get_content_object()
-        moderation_class = self._registry[instance.content_type_id]
+        moderation_class = self._registry[ctype_id]
         if not moderation_class.allow(instance, content_object): # Comment will get deleted in post-save hook.
             instance.moderation_disallowed = True
             return
