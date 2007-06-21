@@ -4,11 +4,11 @@ moderation options on a per-model basis.
 
 To use, do two things:
 
-1. Create or import a subclass of ``ModelModerator`` defining the
+1. Create or import a subclass of ``CommentModerator`` defining the
    options you want.
 
 2. Import ``moderator`` from this module and register one or more
-   models, passing the models and the ``ModelModerator`` options class
+   models, passing the models and the ``CommentModerator`` options class
    you want to use.
 
 
@@ -26,12 +26,12 @@ a weblog::
         pub_date = models.DateField()
         enable_comments = models.BooleanField()
 
-Then we create a ``ModelModerator`` subclass specifying some
+Then we create a ``CommentModerator`` subclass specifying some
 moderation options::
     
-    from comment_utils.moderation import ModelModerator, moderator
+    from comment_utils.moderation import CommentModerator, moderator
     
-    class EntryModerator(ModelModerator):
+    class EntryModerator(CommentModerator):
         akismet = True
         email_notification = True
         enable_field = 'enable_comments'
@@ -55,10 +55,10 @@ comment submitted on an Entry:
   comment will be sent to site staff.
 
 For a full list of built-in moderation options and other
-configurability, see the documentation for the ``ModelModerator``
+configurability, see the documentation for the ``CommentModerator``
 class.
 
-Several example subclasses of ``ModelModerator`` are provided in this
+Several example subclasses of ``CommentModerator`` are provided in this
 module as well, both to save for common moderation options and to
 demonstrate some of the ways subclasses can customize moderation
 behavior.
@@ -96,7 +96,7 @@ class NotModerated(Exception):
     pass
 
 
-class ModelModerator(object):
+class CommentModerator(object):
     """
     Encapsulates comment-moderation options for a given model.
     
@@ -256,21 +256,21 @@ class ModelModerator(object):
         send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, recipient_list, fail_silently=True)
 
 
-class AkismetModerator(ModelModerator):
+class AkismetModerator(CommentModerator):
     """
-    Subclass of ``ModelModerator`` which applies Akismet spam
-    filtering to all comments for its model.
+    Subclass of ``CommentModerator`` which applies Akismet spam
+    filtering to all new comments for its model.
     
     """
     akismet = True
 
 
-class AlwaysModerate(ModelModerator):
+class AlwaysModerate(CommentModerator):
     """
-    Subclass of ``ModelModerator`` which forces all new comments for
+    Subclass of ``CommentModerator`` which forces all new comments for
     its model into moderation (marks all comments non-public to begin
     with).
-    
+
     """
     def moderate(self, comment, content_object):
         """
@@ -282,13 +282,13 @@ class AlwaysModerate(ModelModerator):
         return True
 
 
-class ModerateFirstTimers(ModelModerator):
+class ModerateFirstTimers(CommentModerator):
     """
-    Subclass of ``ModelModerator`` which checks each new comment to
+    Subclass of ``CommentModerator`` which checks each new comment to
     see if the person who submitted it any previous comments which
     were approved (i.e., made public); if not, the new comment will be
     moderated.
-
+    
     The net effect of this is that a first-time commenter will go
     straight to moderation until one of his or her comments is
     approved, and anyone who's previously had a comment approved will
@@ -314,7 +314,7 @@ class ModerateFirstTimers(ModelModerator):
         return False
 
 
-class CommentModerator(object):
+class Moderator(object):
     """
     Handles moderation of a set of models.
     
@@ -325,7 +325,7 @@ class CommentModerator(object):
     To register a model, obtain an instance of ``CommentModerator``
     (this module exports one as ``moderator``), and call its
     ``register`` method, passing the model class and a moderation
-    class (which should be a subclass of ``ModelModerator``). Note
+    class (which should be a subclass of ``CommentModerator``). Note
     that both of these should be the actual classes, not instances of
     the classes.
     
@@ -335,7 +335,7 @@ class CommentModerator(object):
     For convenience, both ``register`` and ``unregister`` can also
     accept a list of model classes in place of a single model; this
     allows easier registration of multiple models with the same
-    ``ModelModerator`` class.
+    ``CommentModerator`` class.
     
     The actual moderation is applied in two phases: one prior to
     saving a new comment, and the other immediately after saving. The
@@ -426,4 +426,4 @@ class CommentModerator(object):
 
 # Import this instance in your own code to use in registering
 # your models for moderation.
-moderator = CommentModerator()
+moderator = Moderator()
