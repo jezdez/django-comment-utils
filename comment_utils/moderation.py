@@ -262,15 +262,15 @@ class AkismetModerator(ModelModerator):
 
 class AlwaysModerate(ModelModerator):
     """
-    Subclass of ``ModelModerator`` which forces all comments for its
-    model into moderation (marks all comments non-public to begin
+    Subclass of ``ModelModerator`` which forces all new comments for
+    its model into moderation (marks all comments non-public to begin
     with).
     
     """
     def moderate(self, comment, content_object):
         """
         Always returns ``True``, no matter what comment or content
-        object is supplied, so that comments always get marked
+        object is supplied, so that new comments always get marked
         non-public to start with.
         
         """
@@ -304,7 +304,7 @@ class ModerateFirstTimers(ModelModerator):
         comment_class = comment.__class__
         person_kwargs = self.kwarg_builder[comment_class](comment)
         approved_comments = comment_class.objects.filter(is_public__exact=True, **person_kwargs)
-        if not approved_comments.count():
+        if approved_comments.count() == 0:
             return True
         return False
 
