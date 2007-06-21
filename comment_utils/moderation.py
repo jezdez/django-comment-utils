@@ -253,11 +253,60 @@ class ModeratedModel(object):
 
 class AkismetModeratedModel(ModeratedModel):
     """
-    Example subclass of ``ModeratedModel`` which applies Akismet spam
-    filtering to comments.
+    Subclass of ``ModeratedModel`` which applies Akismet spam
+    filtering to all comments for its model.
     
     """
     akismet = True
+
+
+class AlwaysModeratedModel(ModeratedModel):
+    """
+    Subclass of ``ModeratedModel`` which forces all comments for its
+    model into moderation (marks all comments non-public to begin
+    with).
+    
+    """
+    def moderate(self, comment, content_object):
+        """
+        Always returns ``True``, no matter what comment or content
+        object is supplied, so that comments always get marked
+        non-public to start with.
+        
+        """
+        return True
+
+
+class ModeratedFirstTimersModel(ModeratedModel):
+    """
+    Subclass of ``ModeratedModel`` which checks each new comment to
+    see if the person who submitted it any previous comments which
+    were approved (i.e., made public); if not, the new comment will be
+    moderated.
+
+    The net effect of this is that a first-time commenter will go
+    straight to moderation until one of his or her comments is
+    approved, and anyone who's previously had a comment approved will
+    be allowed to skip moderation.
+    
+    """
+    kwarg_builder = { Comment: lambda c: { 'user__username__exact': c.user.username },
+                      FreeComment: lambda c: { 'person_name__exact': c.person_name },
+                      }
+    
+    def moderate(self, comment, content_object):
+        """
+        For each new comment, checks to see if the person submitting
+        it has any previously-approved comments; if not, the comment
+        will be moderated.
+        
+        """
+        comment_class = comment.__class__
+        person_kwargs = self.kwarg_builder[comment_class](comment)
+        approved_comments = comment_class.objects.filter(is_public__exact=True, **person_kwargs)
+        if not approved_comments.count():
+            return True
+        return False
 
 
 class CommentModerator(object):
