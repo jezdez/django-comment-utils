@@ -8,8 +8,8 @@ To use, do two things:
    options you want.
 
 2. Import ``moderator`` from this module and register one or more
-   models, passing the models and the ``CommentModerator`` options class
-   you want to use.
+   models, passing the models and the ``CommentModerator`` options
+   class you want to use.
 
 
 Example
@@ -58,8 +58,8 @@ For a full list of built-in moderation options and other
 configurability, see the documentation for the ``CommentModerator``
 class.
 
-Several example subclasses of ``CommentModerator`` are provided in this
-module as well, both to save for common moderation options and to
+Several example subclasses of ``CommentModerator`` are provided in
+this module as well, both to save for common moderation options and to
 demonstrate some of the ways subclasses can customize moderation
 behavior.
 
@@ -270,7 +270,7 @@ class AlwaysModerate(CommentModerator):
     Subclass of ``CommentModerator`` which forces all new comments for
     its model into moderation (marks all comments non-public to begin
     with).
-
+    
     """
     def moderate(self, comment, content_object):
         """
