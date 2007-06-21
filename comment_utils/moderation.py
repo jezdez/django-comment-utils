@@ -58,6 +58,11 @@ For a full list of built-in moderation options and other
 configurability, see the documentation for the ``ModelModerator``
 class.
 
+Several example subclasses of ``ModelModerator`` are provided in this
+module as well, both to save for common moderation options and to
+demonstrate some of the ways subclasses can customize moderation
+behavior.
+
 """
 
 
