@@ -1,0 +1,88 @@
+====================================
+Template tags for moderated comments
+====================================
+
+
+The built-in template tags included with ``django.contrib.comments``
+for retrieving lists and counts of comments for specific objects are
+useful, but when mixed with an application which uses comment
+moderation they become problematic, because these tags look at _all_
+comments, rather than just those comments which are marked with
+``is_public=True``. This can lead to excessive template logic to
+exclude moderated (non-public) comments from public display, and no
+workaround is possible within a template for seemingly-erroneous
+comment counts.
+
+To solve these problems, ``comment_utils`` includes a set of tags
+which closely mimic the built-in comment list and comment count tags,
+but which do take the ``is_public`` field into account. At the moment,
+they do not take into account the ``is_removed`` field on ``Comment``
+or the ``approved`` field on ``FreeComment``, though a future version
+of ``comment_utils`` may add support for this.
+
+Before using any of these tags in your templates, remember to load
+them with ``{% load comment_utils %}``.
+
+
+``get_public_comment_count``
+----------------------------
+
+Nearly identical to Django's built-in ``get_comment_count`` tag;
+returns the number of public ``Comment`` objects attached to a given
+object.
+
+Syntax::
+    
+    {% get_public_comment_count for [app_name].[model_name] [object_id] as [varname] %}
+
+Example::
+
+    {% get_public_comment_count for blog.entry entry.id as comment_count %}
+
+
+``get_public_free_comment_count``
+----------------------------------
+
+Nearly identical to Django's built-in ``get_free_comment_count`` tag;
+returns the number of public ``FreeComment`` objects attached to a given
+object.
+
+Syntax::
+    
+    {% get_public_free_comment_count for [app_name].[model_name] [object_id] as [varname] %}
+
+Example::
+
+    {% get_public_free_comment_count for blog.entry entry.id as comment_count %}
+
+
+``get_public_comment_list``
+---------------------------
+
+Nearly identical to Django's built-in ``get_comment_list`` tag;
+returns a list of public ``Comment`` objects attached to a given
+object.
+
+Syntax::
+
+    {% get_public_comment_list for [app_name].[model_name] [object_id] as [varname] %}
+
+Example::
+
+    {% get_public_comment_list for blog.entry entry.id as comment_list %}
+
+
+``get_public_free_comment_list``
+--------------------------------
+
+Nearly identical to Django's built-in ``get_free_comment_list`` tag;
+returns a list of public ``FreeComment`` objects attached to a given
+object.
+
+Syntax::
+
+    {% get_public_free_comment_list for [app_name].[model_name] [object_id] as [varname] %}
+
+Example::
+
+    {% get_public_free_comment_list for blog.entry entry.id as comment_list %}
