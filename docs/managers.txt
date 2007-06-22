@@ -1,0 +1,92 @@
+============================================
+Custom manager for models which use comments
+============================================
+
+
+It's relatively common, when a model will be making use of the comment
+system, to want to perform a query for the "most commented" or "most
+discussed" objects of that model -- those objects which have received
+the most comments. To make this easier, ``comment_utils`` provides a
+custom manager which includes a generic method for performing this
+query.
+
+
+``comment_utils.managers.CommentedObjectManager``
+-------------------------------------------------
+
+This is a simple custom manager which can query for the "most
+commented" objects of the model it's attached to. This is accomplished
+through a single method named ``most_commented``, which takes the
+following keyword arguments::
+
+    num
+        The maximum number of objects to return. Defaults to 5 if not
+        supplied.
+
+    free
+        If ``True``, will query for objects with the most
+        ``FreeComment`` objects (unregistered comments) attached to
+        them; if ``False``, will query for objects with the most
+        ``Comment`` objects (registered comments) attached to
+        them. Defaults to ``True`` if not supplied.
+
+There are two primary ways to make use of this manager:
+
+1. When you have a model which will be making use of comments, but
+   would not otherwise have a custom manager.
+
+2. When you have a model which will be making use of comments, but
+   will need a custom manager to add functionality specific to that
+   model.
+
+To show how to use ``CommentedObjectManager`` in either case, we'll
+use the following example model, which might represent entries in a
+weblog.
+
+    from django.db import models
+    
+    STATUS_CHOICES = (
+        (1, 'Live'),
+        (2, 'Hidden'),
+    )
+    
+    class Entry(models.Model):
+        title = models.CharField(maxlength=250)
+        pub_date = models.DateTimeField()
+        body = models.TextField()
+        status = models.IntegerField(choices=STATUS_CHOICES)
+
+If the ``Entry`` model wants to use comments, but you wouldn't
+otherwise want a custom manager on it, adding
+``CommentedObjectManager`` is just a two-line change; add the
+following at the top of the models file::
+
+    from comment_utils.managers import CommentedObjectManager
+
+And then inside the ``Entry`` class add this line::
+
+    objects = CommentedObjectManager()
+
+This will override the automatic manager assigned by Django, so that
+``Entry.objects`` will be an instance of ``CommentedObjectManager``;
+all the usual manager methods (``all``, ``filter``, etc.) will still
+work, but ``Entry.objects.most_commented()`` will also be available.
+
+If the ``Entry`` model should also have its own custom manager -- say,
+to enable automatic filtering out of "hidden" entries in order to
+avoid displaying them -- then that manager should subclass
+``CommentedObjectManager`` instead of Django's base ``Manager``
+class. The implementation might look like this::
+
+    from comment_utils.managers import CommentedObjectManager
+    
+    class LiveEntryManager(CommentedObjectManager):
+        def get_query_set(self):
+            return super(LiveEntryManager,  self).get_query_set().filter(status__exact=1)
+
+Then, ``LiveEntryManager`` could be attached to ``Entry`` in the same
+fashion as any other custom manager, and it would provide the
+``most_commented`` method in addition to performing the custom
+filtering (note that ``most_commented``, in this case, would only look
+at entries with "live" status, due to the overriding of
+``get_query_set`` in ``LiveEntryManager``).
