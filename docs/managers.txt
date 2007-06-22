@@ -30,6 +30,10 @@ following keyword arguments::
         ``Comment`` objects (registered comments) attached to
         them. Defaults to ``True`` if not supplied.
 
+Because the order of the objects -- objects with higher comment counts
+should come first -- is important, this method returns a list rather
+than a ``QuerySet``.
+
 There are two primary ways to make use of this manager:
 
 1. When you have a model which will be making use of comments, but
