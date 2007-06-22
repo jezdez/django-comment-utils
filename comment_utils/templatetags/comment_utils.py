@@ -14,18 +14,20 @@ from django.contrib.contenttypes.models import ContentType
 
 
 class PublicCommentCountNode(comments.CommentCountNode):
-    def render(self, context):
+    def iter_render(self, context):
         from django.conf import settings
         manager = self.free and FreeComment.objects or Comment.objects
         if self.context_var_name is not None:
             object_id = template.resolve_variable(self.context_var_name, context)
+        else:
+            object_id = self.obj_id
         comment_count = manager.filter(object_id__exact=object_id,
                                        content_type__app_label__exact=self.package,
                                        content_type__model__exact=self.module,
                                        site__id__exact=settings.SITE_ID,
                                        is_public__exact=True).count()
         context[self.var_name] = comment_count
-        return ''
+        return ()
 
 
 class DoPublicCommentList(comments.DoGetCommentList):
@@ -151,8 +153,17 @@ class DoPublicCommentCount(comments.DoCommentCount):
             raise template.TemplateSyntaxError("'%s' tag got invalid model '%s.%s'" % (bits[0], app_name, model_name))
         content_type = ContentType.objects.get_for_model(model)
         var_name, object_id = None, None
+        if bits[3].isdigit():
+            object_id = bits[3]
+            try:
+                content_type.get_object_for_this_type(pk=object_id)
+            except ObjectDoesNotExist:
+                raise template.TemplateSyntaxError("'%s' tag got reference to %s object with id %s, which doesn't exist" % (bits[0], content_type.name, object_id))
+        else:
+            var_name = bits[3]
         if bits[4] != 'as':
             raise template.TemplateSyntaxError("fourth argument to '%s' tag must be 'as'" % bits[0])
+        
         return PublicCommentCountNode(app_name, model_name, var_name, object_id, bits[5], self.free)
 
 
