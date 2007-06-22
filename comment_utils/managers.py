@@ -37,21 +37,21 @@ class CommentedObjectManager(models.Manager):
             comment_opts = comment_models.FreeComment._meta
         else:
             comment_opts = comment_models.Comment._meta
-            ctype = ContentType.objects.get_for_model(self.model)
-            query = """SELECT %s, COUNT(*) AS score
-            FROM %s
-            WHERE content_type_id = %%s
-            AND is_public = 1
-            GROUP BY %s
-            ORDER BY score DESC""" % (backend.quote_name('object_id'),
-                                      backend.quote_name(comment_opts.db_table),
-                                      backend.quote_name('object_id'),)
-            
-            cursor = connection.cursor()
-            cursor.execute(query, [ctype.id])
-            entry_ids = [row[0] for row in cursor.fetchall()[:num]]
-            
-            # Use ``in_bulk`` here instead of an ``id__in`` filter, because ``id__in``
-            # would clobber the ordering.
-            entry_dict = self.in_bulk(entry_ids)
-            return [entry_dict[entry_id] for entry_id in entry_ids]
+        ctype = ContentType.objects.get_for_model(self.model)
+        query = """SELECT %s, COUNT(*) AS score
+        FROM %s
+        WHERE content_type_id = %%s
+        AND is_public = 1
+        GROUP BY %s
+        ORDER BY score DESC""" % (backend.quote_name('object_id'),
+                                  backend.quote_name(comment_opts.db_table),
+                                  backend.quote_name('object_id'),)
+        
+        cursor = connection.cursor()
+        cursor.execute(query, [ctype.id])
+        object_ids = [row[0] for row in cursor.fetchall()[:num]]
+        
+        # Use ``in_bulk`` here instead of an ``id__in`` filter, because ``id__in``
+        # would clobber the ordering.
+        object_dict = self.in_bulk(object_ids)
+        return [object_dict[entry_id] for entry_id in object_ids]
