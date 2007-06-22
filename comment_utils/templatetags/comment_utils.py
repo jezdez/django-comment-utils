@@ -14,7 +14,7 @@ from django.contrib.contenttypes.models import ContentType
 
 
 class PublicCommentCountNode(comments.CommentCountNode):
-    def iter_render(self, context):
+    def render(self, context):
         from django.conf import settings
         manager = self.free and FreeComment.objects or Comment.objects
         if self.context_var_name is not None:
@@ -27,7 +27,7 @@ class PublicCommentCountNode(comments.CommentCountNode):
                                        site__id__exact=settings.SITE_ID,
                                        is_public__exact=True).count()
         context[self.var_name] = comment_count
-        return ()
+        return ''
 
 
 class DoPublicCommentList(comments.DoGetCommentList):
