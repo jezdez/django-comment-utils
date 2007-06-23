@@ -59,7 +59,7 @@ configurability, see the documentation for the ``CommentModerator``
 class.
 
 Several example subclasses of ``CommentModerator`` are provided in
-this module as well, both to save for common moderation options and to
+this module as well, both to provide common moderation options and to
 demonstrate some of the ways subclasses can customize moderation
 behavior.
 
