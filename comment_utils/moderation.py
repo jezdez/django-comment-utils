@@ -285,7 +285,7 @@ class AlwaysModerate(CommentModerator):
 class ModerateFirstTimers(CommentModerator):
     """
     Subclass of ``CommentModerator`` which checks each new comment to
-    see if the person who submitted it any previous comments which
+    see if the person who submitted it has any previous comments which
     were approved (i.e., made public); if not, the new comment will be
     moderated.
     
