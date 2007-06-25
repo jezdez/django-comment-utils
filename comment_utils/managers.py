@@ -32,6 +32,15 @@ class CommentedObjectManager(models.Manager):
         model (``Comment``) instead of the anonymous comment model
         (``FreeComment``).
         
+        The return value will be a list of dictionaries, each with the
+        following keys::
+        
+            object
+                An object of this model.
+        
+            comment_count
+                The number of comments on the object.
+        
         """
         if free:
             comment_opts = comment_models.FreeComment._meta
@@ -49,9 +58,13 @@ class CommentedObjectManager(models.Manager):
         
         cursor = connection.cursor()
         cursor.execute(query, [ctype.id])
-        object_ids = [row[0] for row in cursor.fetchall()[:num]]
+        object_data = [row for row in cursor.fetchall()[:num]]
         
         # Use ``in_bulk`` here instead of an ``id__in`` filter, because ``id__in``
         # would clobber the ordering.
-        object_dict = self.in_bulk(object_ids)
-        return [object_dict[entry_id] for entry_id in object_ids]
+        object_dict = self.in_bulk([tup[0] for tup in object_data])
+        result_list = []
+        for row in object_data:
+            result_list.append({ 'object': object_dict[row[0]],
+                            'comment_count': row[1] })
+        return result_list

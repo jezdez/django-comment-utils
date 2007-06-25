@@ -32,7 +32,15 @@ following keyword arguments::
 
 Because the order of the objects -- objects with higher comment counts
 should come first -- is important, this method returns a list rather
-than a ``QuerySet``.
+than a ``QuerySet``. Each item in the returned list will be a
+dictionary with the following keys::
+
+    object
+        An object of the model the ``CommentedObjectManager`` is
+        attached to.
+
+    comment_count
+        The number of comments on that object.
 
 There are two primary ways to make use of this manager:
 
