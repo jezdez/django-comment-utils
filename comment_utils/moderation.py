@@ -104,16 +104,17 @@ class CommentModerator(object):
     enable any of the available moderation options. Instead, subclass
     it and override attributes to enable different options::
     
-        akismet
+        ``akismet``
             If ``True``, comments will be submitted to an Akismet spam
             check and, if Akismet thinks they're spam, will have their
             ``is_public`` field set to ``False`` before saving. If
             this is enabled, you will need to have the Python Akismet
             module installed, and you will need to add the setting
             ``AKISMET_API_KEY`` to your Django settings file; the
-            value of this setting should be a valid Akismet API key.
+            value of this setting should be a valid Akismet API
+            key. Default value is ``False``.
     
-        auto_close_field
+        ``auto_close_field``
             If this is set to the name of a ``DateField`` or
             ``DateTimeField`` on the model for which comments are
             being moderated, new comments for objects of that model
@@ -121,40 +122,43 @@ class CommentModerator(object):
             number of days have passed after the date specified in
             that field. Must be used in conjunction with
             ``close_after``, which specifies the number of days past
-            which comments should be disallowed.
+            which comments should be disallowed. Default value is
+            ``None``.
     
-        auto_moderate_field
+        ``auto_moderate_field``
             Like ``auto_close_field``, but instead of outright
             deleting new comments when the requisite number of days
             have elapsed, it will simply set the ``is_public`` field
             of new comments to ``False`` before saving them. Must be
             used in conjunction with ``moderate_after``, which
             specifies the number of days past which comments should be
-            moderated.
+            moderated. Default value is ``None``.
     
-        close_after
+        ``close_after``
             If ``auto_close_field`` is used, this must specify the
             number of days past the value of the field specified by
             ``auto_close_field`` after which new comments for an
-            object should be disallowed.
+            object should be disallowed. Default value is ``None``.
     
-        email_notification
+        ``email_notification``
             If ``True``, any new comment on an object of this model
             which survives moderation will generate an email to site
-            staff.
+            staff. Default value is ``False``.
     
-        enable_field
+        ``enable_field``
             If this is set to the name of a ``BooleanField`` on the
             model for which comments are being moderated, new comments
             on objects of that model will be disallowed (immediately
             deleted) whenever the value of that field is ``False`` on
-            the object the comment would be attached to.
+            the object the comment would be attached to. Default value
+            is ``None``.
     
-        moderate_after
+        ``moderate_after``
             If ``auto_moderate`` is used, this must specify the number
             of days past the value of the field specified by
             ``auto_moderate_field`` after which new comments for an
-            object should be marked non-public.
+            object should be marked non-public. Default value is
+            ``None``.
     
     Most common moderation needs can be covered by changing these
     attributes, but further customization can be obtained by
@@ -163,17 +167,17 @@ class CommentModerator(object):
     being submitted, and ``content_object``, which is the object the
     comment will be attached to::
     
-        allow
+        ``allow``
             Should return ``True`` if the comment should be allowed to
             post on the content object, and ``False`` otherwise (in
             which case the comment will be immediately deleted).
     
-        email
+        ``email``
             If email notification of the new comment should be sent to
             site staff or moderators, this method is responsible for
             sending the email.
     
-        moderate
+        ``moderate``
             Should return ``True`` if the comment should be moderated
             (in which case its ``is_public`` field will be set to
             ``False`` before saving), and ``False`` otherwise (in
@@ -284,15 +288,9 @@ class AlwaysModerate(CommentModerator):
 
 class ModerateFirstTimers(CommentModerator):
     """
-    Subclass of ``CommentModerator`` which checks each new comment to
-    see if the person who submitted it has any previous comments which
-    were approved (i.e., made public); if not, the new comment will be
-    moderated.
-    
-    The net effect of this is that a first-time commenter will go
-    straight to moderation until one of his or her comments is
-    approved, and anyone who's previously had a comment approved will
-    be allowed to skip moderation.
+    Subclass of ``CommentModerator`` which automatically moderates all
+    comments from anyone who has not previously had a comment
+    approved, while allowing all other comments to skip moderation.
     
     """
     kwarg_builder = { Comment: lambda c: { 'user__username__exact': c.user.username },
