@@ -238,7 +238,7 @@ class CommentModerator(object):
                                  'referrer': '',
                                  'user_ip': comment.ip_address,
                                  'user_agent': '' }
-                if akismet_api.comment_check(instance.comment, data=akismet_data, build_data=True):
+                if akismet_api.comment_check(comment.comment, data=akismet_data, build_data=True):
                     return True
         return False
 
