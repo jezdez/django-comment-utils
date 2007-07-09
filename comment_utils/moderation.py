@@ -70,7 +70,8 @@ import datetime
 
 from django.conf import settings
 from django.core.mail import send_mail
-from django.db.models import Model, signals
+from django.db.models import signals
+from django.db.models.base import ModelBase
 from django.dispatch import dispatcher
 from django.template import Context, loader
 from django.contrib.comments.models import Comment, FreeComment
@@ -367,7 +368,7 @@ class Moderator(object):
         registered.
         
         """
-        if issubclass(model_or_iterable, Model):
+        if isinstance(model_or_iterable, ModelBase):
             model_or_iterable = [model_or_iterable]
         for model in model_or_iterable:
             ctype_id = ContentType.objects.get_for_model(model).id
@@ -384,7 +385,7 @@ class Moderator(object):
         registered for moderation.
         
         """
-        if issubclass(model_or_iterable, Model):
+        if isinstance(model_or_iterable, ModelBase):
             model_or_iterable = [model_or_iterable]
         for model in model_or_iterable:
             ctype_id = ContentType.objects.get_for_model(model).id
