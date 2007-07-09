@@ -1,0 +1,11 @@
+=======================
+comment_utils changelog
+=======================
+
+
+Version 0.2, 9 July 2007:
+-------------------------
+
+* Fixed a bug with registering/unregistering lists of model classes,
+  by switching from an ``issubclass`` check on ``Model`` to an
+  ``isinstance`` check on ``ModelBase``.
