@@ -213,7 +213,7 @@ class CommentModerator(object):
             if not getattr(content_object, self.enable_field):
                 return False
         if self.auto_close_field and self.close_after:
-            if datetime.date.today() - self.auto_close_after > getattr(content_object, self.auto_close_field):
+            if datetime.date.today() - self.close_after > getattr(content_object, self.auto_close_field):
                 return False
         return True
     
@@ -228,7 +228,7 @@ class CommentModerator(object):
         
         """
         if self.auto_moderate_field and self.moderate_after:
-            if datetime.date.today() - self.auto_moderate_after > getattr(content_object, self.auto_moderate_field):
+            if datetime.date.today() - self.moderate_after > getattr(content_object, self.auto_moderate_field):
                 return True
         if self.akismet:
             from akismet import Akismet
