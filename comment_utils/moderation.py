@@ -418,7 +418,7 @@ class Moderator(object):
         model = instance.content_type.model_class()
         if model not in self._registry:
             return
-        if hasattr(instance, moderation_disallowed):
+        if hasattr(instance, 'moderation_disallowed'):
             instance.delete()
             return
 
