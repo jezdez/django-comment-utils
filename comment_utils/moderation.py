@@ -371,10 +371,9 @@ class Moderator(object):
         if isinstance(model_or_iterable, ModelBase):
             model_or_iterable = [model_or_iterable]
         for model in model_or_iterable:
-            ctype_id = ContentType.objects.get_for_model(model).id
-            if ctype_id in self._registry:
+            if model in self._registry:
                 raise AlreadyModerated("The model '%s' is already being moderated" % model._meta.module_name)
-            self._registry[ctype_id] = moderation_class(model)
+            self._registry[model] = moderation_class(model)
     
     def unregister(self, model_or_iterable):
         """
@@ -388,10 +387,9 @@ class Moderator(object):
         if isinstance(model_or_iterable, ModelBase):
             model_or_iterable = [model_or_iterable]
         for model in model_or_iterable:
-            ctype_id = ContentType.objects.get_for_model(model).id
-            if ctype_id not in self._registry:
+            if model not in self._registry:
                 raise NotModerated("The model '%s' is not currently being moderated" % model._meta.module_name)
-            del self._registry[ctype_id]
+            del self._registry[model]
     
     def pre_save_moderation(self, sender, instance):
         """
@@ -399,11 +397,11 @@ class Moderator(object):
         comments.
         
         """
-        ctype_id = int(instance.content_type_id)
-        if instance.id or (ctype_id not in self._registry):
+        model = instance.content_type.model_class()
+        if instance.id or (model not in self._registry):
             return
         content_object = instance.get_content_object()
-        moderation_class = self._registry[ctype_id]
+        moderation_class = self._registry[model]
         if not moderation_class.allow(instance, content_object): # Comment will get deleted in post-save hook.
             instance.moderation_disallowed = True
             return
@@ -417,7 +415,8 @@ class Moderator(object):
         comments.
         
         """
-        if instance.content_type_id not in self._registry:
+        model = instance.content_type.model_class()
+        if model not in self._registry:
             return
         if instance.moderation_disallowed:
             instance.delete()
