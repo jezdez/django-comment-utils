@@ -232,6 +232,7 @@ class CommentModerator(object):
                 return True
         if self.akismet:
             from akismet import Akismet
+            from django.utils.encoding import smart_str
             akismet_api = Akismet(key=settings.AKISMET_API_KEY,
                                   blog_url='http://%s/' % Site.objects.get_current().domain)
             if akismet_api.verify_key():
@@ -239,7 +240,7 @@ class CommentModerator(object):
                                  'referrer': '',
                                  'user_ip': comment.ip_address,
                                  'user_agent': '' }
-                if akismet_api.comment_check(comment.comment, data=akismet_data, build_data=True):
+                if akismet_api.comment_check(smart_str(comment.comment), data=akismet_data, build_data=False):
                     return True
         return False
 
