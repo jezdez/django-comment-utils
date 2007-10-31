@@ -18,7 +18,7 @@ class PublicCommentCountNode(comments.CommentCountNode):
         from django.conf import settings
         manager = self.free and FreeComment.objects or Comment.objects
         if self.context_var_name is not None:
-            object_id = template.resolve_variable(self.context_var_name, context)
+            object_id = self.context_var_name.resolve(context)
         else:
             object_id = self.obj_id
         comment_count = manager.filter(object_id__exact=object_id,
