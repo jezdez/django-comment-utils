@@ -5,7 +5,7 @@ inheit from.
 """
 
 
-from django.db import backend, connection, models
+from django.db import connection, models
 from django.contrib.comments import models as comment_models
 from django.contrib.contenttypes.models import ContentType
 
@@ -42,6 +42,7 @@ class CommentedObjectManager(models.Manager):
                 The number of comments on the object.
         
         """
+        qn = connection.opts.quote_name
         if free:
             comment_opts = comment_models.FreeComment._meta
         else:
@@ -52,9 +53,9 @@ class CommentedObjectManager(models.Manager):
         WHERE content_type_id = %%s
         AND is_public = 1
         GROUP BY %s
-        ORDER BY score DESC""" % (backend.quote_name('object_id'),
-                                  backend.quote_name(comment_opts.db_table),
-                                  backend.quote_name('object_id'),)
+        ORDER BY score DESC""" % (qn('object_id'),
+                                  qn(comment_opts.db_table),
+                                  qn('object_id'),)
         
         cursor = connection.cursor()
         cursor.execute(query, [ctype.id])
