@@ -19,8 +19,6 @@ class PublicCommentCountNode(comments.CommentCountNode):
         manager = self.free and FreeComment.objects or Comment.objects
         if self.context_var_name is not None:
             object_id = self.context_var_name.resolve(context)
-        else:
-            object_id = self.obj_id
         comment_count = manager.filter(object_id__exact=object_id,
                                        content_type__app_label__exact=self.package,
                                        content_type__model__exact=self.module,
