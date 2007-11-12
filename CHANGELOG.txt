@@ -2,6 +2,20 @@
 comment_utils changelog
 =======================
 
+Version 0.3, 10 November 2007:
+------------------------------
+
+* Packaged from revision 82 in Subversion.
+
+* Changes to support Django's Unicode merge.
+
+* Changes to comply with updates to template variable resolution in
+  Django's built-in comment tags.
+
+* Added a script, suitable for use as a cron job, which can be used to
+  automatically delete spam comments after a certain period of time
+  has elapsed.
+
 
 Version 0.2, 9 July 2007:
 -------------------------

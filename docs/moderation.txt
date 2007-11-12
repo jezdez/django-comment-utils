@@ -13,7 +13,7 @@ to make use of Django's comment system.
 
 
 Overview
---------
+========
 
 The entire system is contained within ``comment_utils.moderation``,
 and uses a two-step process to enable moderation for any given model:
@@ -238,3 +238,49 @@ achieve customized behavior::
         In the base implementation, applies all post-save moderation
         steps (currently this consists entirely of deleting comments
         which were disallowed).
+
+
+Automatically deleting non-public comments
+------------------------------------------
+
+In order to save the hassle of manually deleting spam or
+otherwise-non-public comments on a regular basis, a script is included
+-- ``bin/delete_spam_comments.py`` -- which is intended to be used as
+a cron job, and which will automatically delete non-public comments
+based on criteria you provide to it.
+
+**Required arguments**
+
+``-s``, ``--settings``
+    Specifies the Django settings module to use.
+
+
+**Optional arguments**
+
+``-a`` ``--age``
+    An age cutoff, in days, beyond which non-public comments will be
+    deleted. for example, when using ``--age=7`` any non-public
+    comment older than 7 days will be deleted. Defaults to 14 if not
+    specified.
+
+``-d``, ``--dry-run``
+    Prints the number of comments which would have been deleted, but
+    does not actually delete them.
+
+``-t``, ``--type``
+    The type of comment to delete; ``--type=free`` will delete
+    instance of ``FreeComment``, ``--type=registered`` will delete
+    instances of ``Comment``. Defaults to "free" if not specified.
+
+``-v``, ``--verbose``
+    If supplied, the script will run verbosely, printing a description
+    of each comment as it is deleted. Regardless of the value of this
+    argument, the script will print the total number of deleted
+    comments once it is finished.
+
+So, for example, the script could be used like so::
+
+    ``python /path/to/comment_utils/bin/delete_spam_comments.py --settings=mysite.settings --age=7 --type=registered
+
+This would delete every non-public ``Comment`` in the ``mysite``
+database older than 7 days.

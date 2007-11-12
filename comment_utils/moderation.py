@@ -75,7 +75,6 @@ from django.db.models.base import ModelBase
 from django.dispatch import dispatcher
 from django.template import Context, loader
 from django.contrib.comments.models import Comment, FreeComment
-from django.contrib.contenttypes.models import ContentType
 from django.contrib.sites.models import Site
 
 
