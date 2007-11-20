@@ -42,7 +42,7 @@ class CommentedObjectManager(models.Manager):
                 The number of comments on the object.
         
         """
-        qn = connection.opts.quote_name
+        qn = connection.ops.quote_name
         if free:
             comment_opts = comment_models.FreeComment._meta
         else:
@@ -51,14 +51,14 @@ class CommentedObjectManager(models.Manager):
         query = """SELECT %s, COUNT(*) AS score
         FROM %s
         WHERE content_type_id = %%s
-        AND is_public = 1
+        AND is_public = %%s
         GROUP BY %s
         ORDER BY score DESC""" % (qn('object_id'),
                                   qn(comment_opts.db_table),
                                   qn('object_id'),)
         
         cursor = connection.cursor()
-        cursor.execute(query, [ctype.id])
+        cursor.execute(query, [ctype.id, True])
         object_data = [row for row in cursor.fetchall()[:num]]
         
         # Use ``in_bulk`` here instead of an ``id__in`` filter, because ``id__in``
