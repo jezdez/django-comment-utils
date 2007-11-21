@@ -407,7 +407,6 @@ class Moderator(object):
             return
         if moderation_class.moderate(instance, content_object):
             instance.is_public = False
-        moderation_class.email(instance, content_object)
     
     def post_save_moderation(self, sender, instance):
         """
@@ -421,6 +420,7 @@ class Moderator(object):
         if hasattr(instance, 'moderation_disallowed'):
             instance.delete()
             return
+        self._registry[model].email(instance, instance.get_content_object())
 
 
 # Import this instance in your own code to use in registering
