@@ -2,6 +2,19 @@
 comment_utils changelog
 =======================
 
+
+Version 0.3p1, 23 November 2007:
+--------------------------------
+
+* Packaged from revision 84 in Subversion.
+
+* Minor bugfix in ``CommentedObjectManager``.
+
+* Moved email notification of new comments into post-save portion of
+  moderation to match what the docs claim. This means you will not
+  receive notification of comments which were deleted.
+
+
 Version 0.3, 10 November 2007:
 ------------------------------
 

@@ -1,7 +1,7 @@
 from distutils.core import setup
 
 setup(name='comment_utils',
-      version='0.3',
+      version='0.3p1',
       description='Comment-related utilities for Django applications',
       author='James Bennett',
       author_email='james@b-list.org',
