@@ -65,7 +65,7 @@ class CommentedObjectManager(models.Manager):
         # would clobber the ordering.
         object_dict = self.in_bulk([tup[0] for tup in object_data])
         result_list = []
-        for row in object_data:
+        for row in object_dict:
             result_list.append({ 'object': object_dict[row[0]],
-                            'comment_count': row[1] })
+                                 'comment_count': row[1] })
         return result_list
