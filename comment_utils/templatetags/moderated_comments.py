@@ -12,6 +12,8 @@ from django.contrib.comments.models import Comment, FreeComment
 from django.contrib.comments.templatetags import comments
 from django.contrib.contenttypes.models import ContentType
 
+from comment_utils.moderation import moderator
+
 
 class PublicCommentCountNode(comments.CommentCountNode):
     def render(self, context):
@@ -164,9 +166,27 @@ class DoPublicCommentCount(comments.DoCommentCount):
         
         return PublicCommentCountNode(app_name, model_name, var_name, object_id, bits[5], self.free)
 
+def comments_open(value):
+    """
+    Return ``True`` if new comments are allowed for an object,
+    ``False`` otherwise.
+    
+    """
+    return moderator.comments_open(value)
+
+def comments_moderated(value):
+    """
+    Return ``True`` if new comments for an object are being
+    automatically sent into moderation, ``False`` otherwise.
+    
+    """
+    return moderator.comments_moderated(value)
+
 
 register = template.Library()
 register.tag('get_public_comment_list', DoPublicCommentList(False))
 register.tag('get_public_free_comment_list', DoPublicCommentList(True))
 register.tag('get_public_comment_count', DoPublicCommentCount(False))
 register.tag('get_public_free_comment_count', DoPublicCommentCount(True))
+register.filter(comments_open)
+register.filter(comments_moderated)

@@ -199,12 +199,32 @@ class CommentModerator(object):
     def __init__(self, model):
         self._model = model
     
+    def _get_delta(self, now, then):
+        """
+        Internal helper which will return a ``datetime.timedelta``
+        representing the time between ``now`` and ``then``. Assumes
+        ``now`` is a ``datetime.date`` or ``datetime.datetime`` later
+        than ``then``.
+        
+        If ``now`` and ``then`` are not of the same type due to one of
+        them being a ``datetime.date`` and the other being a
+        ``datetime.datetime``, both will be coerced to
+        ``datetime.date`` before calculating the delta.
+        
+        """
+        if now.__class__ is not then.__class__:
+            now = datetime.date(now.year, now.month, now.day)
+            then = datetime.date(then.year, then.month, then.day)
+        if now < then:
+            raise ValueError("Cannot determine moderation rules because date field is set to a value in the future")
+        return now - then
+        
     def allow(self, comment, content_object):
         """
-        Determines whether a given comment is allowed to be posted on
+        Determine whether a given comment is allowed to be posted on
         a given object.
-
-        Returns ``True`` if the comment should be allowed, ``False
+        
+        Return ``True`` if the comment should be allowed, ``False
         otherwise.
         
         """
@@ -212,22 +232,22 @@ class CommentModerator(object):
             if not getattr(content_object, self.enable_field):
                 return False
         if self.auto_close_field and self.close_after:
-            if datetime.datetime.now() - datetime.timedelta(days=self.close_after) > getattr(content_object, self.auto_close_field):
+            if self._get_delta(datetime.datetime.now(), getattr(content_object, self.auto_close_field)).days >= self.close_after:
                 return False
         return True
     
     def moderate(self, comment, content_object):
         """
-        Determines whether a given comment on a given object should be
+        Determine whether a given comment on a given object should be
         allowed to show up immediately, or should be marked non-public
         and await approval.
-
-        Returns ``True`` if the comment should be moderated (marked
+        
+        Return ``True`` if the comment should be moderated (marked
         non-public), ``False`` otherwise.
         
         """
         if self.auto_moderate_field and self.moderate_after:
-            if datetime.datetime.now() - datetime.timedelta(days=self.moderate_after) > getattr(content_object, self.auto_moderate_field):
+            if self._get_delta(datetime.datetime.now(), getattr(content_object, self.auto_moderate_field)).days >= self.moderate_after:
                 return True
         if self.akismet:
             from akismet import Akismet
@@ -242,10 +262,60 @@ class CommentModerator(object):
                 if akismet_api.comment_check(smart_str(comment.comment), data=akismet_data, build_data=True):
                     return True
         return False
-
+    
+    def comments_open(self, obj):
+        """
+        Return ``True`` if new comments are being accepted for
+        ``obj``, ``False`` otherwise.
+        
+        The algorithm for determining this is as follows:
+        
+        1. If ``enable_field`` is set and the relevant field on
+           ``obj`` contains a false value, comments are not open.
+        
+        2. If ``close_after`` is set and the relevant date field on
+           ``obj`` is far enough in the past, comments are not open.
+        
+        3. If neither of the above checks determined that comments are
+           not open, comments are open.
+        
+        """
+        if self.enable_field:
+            if not getattr(obj, self.enable_field):
+                return False
+        if self.auto_close_field and self.close_after:
+            if self._get_delta(datetime.datetime.now(), getattr(obj, self.auto_close_field)).days >= self.close_after:
+                return False
+        return True
+    
+    def comments_moderated(self, obj):
+        """
+        Return ``True`` if new comments for ``obj`` are being
+        automatically sent to moderation, ``False`` otherwise.
+        
+        The algorithm for determining this is as follows:
+        
+        1. If ``moderate_field`` is set and the relevant field on
+           ``obj`` contains a true value, comments are moderated.
+        
+        2. If ``moderate_after`` is set and the relevant date field on
+           ``obj`` is far enough in the past, comments are moderated.
+        
+        3. If neither of the above checks decided that comments are
+           moderated, comments are not moderated.
+        
+        """
+        if self.moderate_field:
+            if getattr(obj, self.moderate_field):
+                return True
+        if self.auto_moderate_field and self.moderate_after:
+            if self._get_delta(datetime.datetime.now(), getattr(obj, self.auto_moderate_field)).days >= self.moderate_after:
+                return True
+        return False
+    
     def email(self, comment, content_object):
         """
-        Emails notification of a new comment to site staff when email
+        Send email notification of a new comment to site staff when email
         notifications have been requested.
         
         """
@@ -279,13 +349,45 @@ class AlwaysModerate(CommentModerator):
     """
     def moderate(self, comment, content_object):
         """
-        Always returns ``True``, no matter what comment or content
+        Always return ``True``, no matter what comment or content
         object is supplied, so that new comments always get marked
         non-public to start with.
         
         """
         return True
 
+    def comments_moderated(self, obj):
+        """
+        Always return ``True``, no matter what object is supplied,
+        because new comments always get moderated.
+        
+        """
+        return True
+
+
+class NoComments(CommentModerator):
+    """
+    Subclass of ``CommentModerator`` which forbids all new comments
+    for its model (deletes all comments posted to objects of that
+    model).
+    
+    """
+    def allow(self, comment, content_object):
+        """
+        Always return ``False`` because new comments are never allowed
+        for this model.
+        
+        """
+        return False
+
+    def comments_open(self, obj):
+        """
+        Always return ``False``, because new comments are never
+        allowed for this model.
+        
+        """
+        return False
+    
 
 class ModerateFirstTimers(CommentModerator):
     """
@@ -351,7 +453,7 @@ class Moderator(object):
     
     def connect(self):
         """
-        Hooks up the moderation methods to pre- and post-save signals
+        Hook up the moderation methods to pre- and post-save signals
         from the comment models.
         
         """
@@ -361,10 +463,10 @@ class Moderator(object):
     
     def register(self, model_or_iterable, moderation_class):
         """
-        Registers a model or a list of models for comment moderation,
+        Register a model or a list of models for comment moderation,
         using a particular moderation class.
         
-        Raises ``AlreadyModerated`` if any of the models are already
+        Raise ``AlreadyModerated`` if any of the models are already
         registered.
         
         """
@@ -377,10 +479,10 @@ class Moderator(object):
     
     def unregister(self, model_or_iterable):
         """
-        Removes a model or a list of models from the list of models
+        Remove a model or a list of models from the list of models
         whose comments will be moderated.
         
-        Raises ``NotModerated`` if any of the models are not currently
+        Raise ``NotModerated`` if any of the models are not currently
         registered for moderation.
         
         """
@@ -393,7 +495,7 @@ class Moderator(object):
     
     def pre_save_moderation(self, sender, instance):
         """
-        Applies any necessary pre-save moderation steps to new
+        Apply any necessary pre-save moderation steps to new
         comments.
         
         """
@@ -410,7 +512,7 @@ class Moderator(object):
     
     def post_save_moderation(self, sender, instance):
         """
-        Applies any necessary post-save moderation steps to new
+        Apply any necessary post-save moderation steps to new
         comments.
         
         """
@@ -421,6 +523,36 @@ class Moderator(object):
             instance.delete()
             return
         self._registry[model].email(instance, instance.get_content_object())
+
+    def comments_open(self, obj):
+        """
+        Return ``True`` if new comments are being accepted for
+        ``obj``, ``False`` otherwise.
+        
+        If no moderation rules have been registered for the model of
+        which ``obj`` is an instance, comments are assumed to be open
+        for that object.
+        
+        """
+        model = obj.__class__
+        if model not in self._registry:
+            return True
+        return self._registry[model].comments_open(obj)
+
+    def comments_moderated(self, obj):
+        """
+        Return ``True`` if new comments for ``obj`` are being
+        automatically sent to moderation, ``False`` otherwise.
+        
+        If no moderation rules have been registered for the model of
+        which ``obj`` is an instance, comments for that object are
+        assumed not to be moderated.
+        
+        """
+        model = obj.__class__
+        if model not in self._registry:
+            return False
+        return self._registry[model].comments_moderated(obj)
 
 
 # Import this instance in your own code to use in registering
