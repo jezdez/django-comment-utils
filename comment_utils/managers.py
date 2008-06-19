@@ -45,7 +45,7 @@ class CommentedObjectManager(models.Manager):
         FROM %(comment_table)s
         WHERE %(comment_table)s.%(content_type_id)s = %(ctype_id)s
         AND %(comment_table)s.%(object_id)s = %(self_table)s.%(pk)s
-        AND %(comment_table)s.%(is_public)s = true
+        AND %(comment_table)s.%(is_public)s = '1'
         """
         
         params = { 'comment_table': qn(comment_opts.db_table),
