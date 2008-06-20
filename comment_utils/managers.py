@@ -5,7 +5,9 @@ inheit from.
 """
 
 
-from django.db import connection, models
+from django.db import connection
+from django.db import models
+from django.utils.datastructures import SortedDict
 from django.contrib.comments import models as comment_models
 from django.contrib.contenttypes.models import ContentType
 
@@ -43,18 +45,15 @@ class CommentedObjectManager(models.Manager):
         
         subquery = """SELECT COUNT(*)
         FROM %(comment_table)s
-        WHERE %(comment_table)s.%(content_type_id)s = %(ctype_id)s
+        WHERE %(comment_table)s.%(content_type_id)s = %%s
         AND %(comment_table)s.%(object_id)s = %(self_table)s.%(pk)s
-        AND %(comment_table)s.%(is_public)s = '1'
-        """
+        AND %(comment_table)s.%(is_public)s = %%s
+        """ % { 'comment_table': qn(comment_opts.db_table),
+                'content_type_id': qn('content_type_id'),
+                'object_id': qn('object_id'),
+                'self_table': qn(self.model._meta.db_table),
+                'pk': qn(self.model._meta.pk.name),
+                'is_public': qn('is_public'),
+                }
         
-        params = { 'comment_table': qn(comment_opts.db_table),
-                   'content_type_id': qn('content_type_id'),
-                   'ctype_id': ctype.id,
-                   'object_id': qn('object_id'),
-                   'self_table': qn(self.model._meta.db_table),
-                   'pk': qn(self.model._meta.pk.name),
-                   'is_public': qn('is_public'),
-                   }
-        
-        return self.extra({ 'comment_count': subquery % params }, order_by=['-comment_count'])[:num]
+        return self.extra(select=SortedDict({ 'comment_count': subquery }), select_params=(ctype.id, True,), order_by=['-comment_count'])[:num]
