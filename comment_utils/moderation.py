@@ -104,61 +104,61 @@ class CommentModerator(object):
     enable any of the available moderation options. Instead, subclass
     it and override attributes to enable different options::
     
-        ``akismet``
-            If ``True``, comments will be submitted to an Akismet spam
-            check and, if Akismet thinks they're spam, will have their
-            ``is_public`` field set to ``False`` before saving. If
-            this is enabled, you will need to have the Python Akismet
-            module installed, and you will need to add the setting
-            ``AKISMET_API_KEY`` to your Django settings file; the
-            value of this setting should be a valid Akismet API
-            key. Default value is ``False``.
+    ``akismet``
+        If ``True``, comments will be submitted to an Akismet spam
+        check and, if Akismet thinks they're spam, will have their
+        ``is_public`` field set to ``False`` before saving. If
+        this is enabled, you will need to have the Python Akismet
+        module installed, and you will need to add the setting
+        ``AKISMET_API_KEY`` to your Django settings file; the
+        value of this setting should be a valid Akismet API
+        key. Default value is ``False``.
     
-        ``auto_close_field``
-            If this is set to the name of a ``DateField`` or
-            ``DateTimeField`` on the model for which comments are
-            being moderated, new comments for objects of that model
-            will be disallowed (immediately deleted) when a certain
-            number of days have passed after the date specified in
-            that field. Must be used in conjunction with
-            ``close_after``, which specifies the number of days past
-            which comments should be disallowed. Default value is
-            ``None``.
+    ``auto_close_field``
+        If this is set to the name of a ``DateField`` or
+        ``DateTimeField`` on the model for which comments are
+        being moderated, new comments for objects of that model
+        will be disallowed (immediately deleted) when a certain
+        number of days have passed after the date specified in
+        that field. Must be used in conjunction with
+        ``close_after``, which specifies the number of days past
+        which comments should be disallowed. Default value is
+        ``None``.
     
-        ``auto_moderate_field``
-            Like ``auto_close_field``, but instead of outright
-            deleting new comments when the requisite number of days
-            have elapsed, it will simply set the ``is_public`` field
-            of new comments to ``False`` before saving them. Must be
-            used in conjunction with ``moderate_after``, which
-            specifies the number of days past which comments should be
-            moderated. Default value is ``None``.
+    ``auto_moderate_field``
+        Like ``auto_close_field``, but instead of outright
+        deleting new comments when the requisite number of days
+        have elapsed, it will simply set the ``is_public`` field
+        of new comments to ``False`` before saving them. Must be
+        used in conjunction with ``moderate_after``, which
+        specifies the number of days past which comments should be
+        moderated. Default value is ``None``.
     
-        ``close_after``
-            If ``auto_close_field`` is used, this must specify the
-            number of days past the value of the field specified by
-            ``auto_close_field`` after which new comments for an
-            object should be disallowed. Default value is ``None``.
+    ``close_after``
+        If ``auto_close_field`` is used, this must specify the
+        number of days past the value of the field specified by
+        ``auto_close_field`` after which new comments for an
+        object should be disallowed. Default value is ``None``.
     
-        ``email_notification``
-            If ``True``, any new comment on an object of this model
-            which survives moderation will generate an email to site
-            staff. Default value is ``False``.
+    ``email_notification``
+        If ``True``, any new comment on an object of this model
+        which survives moderation will generate an email to site
+        staff. Default value is ``False``.
     
-        ``enable_field``
-            If this is set to the name of a ``BooleanField`` on the
-            model for which comments are being moderated, new comments
-            on objects of that model will be disallowed (immediately
-            deleted) whenever the value of that field is ``False`` on
-            the object the comment would be attached to. Default value
-            is ``None``.
+    ``enable_field``
+        If this is set to the name of a ``BooleanField`` on the
+        model for which comments are being moderated, new comments
+        on objects of that model will be disallowed (immediately
+        deleted) whenever the value of that field is ``False`` on
+        the object the comment would be attached to. Default value
+        is ``None``.
     
-        ``moderate_after``
-            If ``auto_moderate`` is used, this must specify the number
-            of days past the value of the field specified by
-            ``auto_moderate_field`` after which new comments for an
-            object should be marked non-public. Default value is
-            ``None``.
+    ``moderate_after``
+        If ``auto_moderate`` is used, this must specify the number
+        of days past the value of the field specified by
+        ``auto_moderate_field`` after which new comments for an
+        object should be marked non-public. Default value is
+        ``None``.
     
     Most common moderation needs can be covered by changing these
     attributes, but further customization can be obtained by
@@ -167,21 +167,21 @@ class CommentModerator(object):
     being submitted, and ``content_object``, which is the object the
     comment will be attached to::
     
-        ``allow``
-            Should return ``True`` if the comment should be allowed to
-            post on the content object, and ``False`` otherwise (in
-            which case the comment will be immediately deleted).
+    ``allow``
+        Should return ``True`` if the comment should be allowed to
+        post on the content object, and ``False`` otherwise (in
+        which case the comment will be immediately deleted).
     
-        ``email``
-            If email notification of the new comment should be sent to
-            site staff or moderators, this method is responsible for
-            sending the email.
+    ``email``
+        If email notification of the new comment should be sent to
+        site staff or moderators, this method is responsible for
+        sending the email.
     
-        ``moderate``
-            Should return ``True`` if the comment should be moderated
-            (in which case its ``is_public`` field will be set to
-            ``False`` before saving), and ``False`` otherwise (in
-            which case the ``is_public`` field will not be changed).
+    ``moderate``
+        Should return ``True`` if the comment should be moderated
+        (in which case its ``is_public`` field will be set to
+        ``False`` before saving), and ``False`` otherwise (in
+        which case the ``is_public`` field will not be changed).
     
     Subclasses which want to introspect the model for which comments
     are being moderated can do so through the attribute ``_model``,
