@@ -8,9 +8,10 @@ inheit from.
 from django.db import connection
 from django.db import models
 from django.utils.datastructures import SortedDict
-from django.contrib.comments import models as comment_models
 from django.contrib.contenttypes.models import ContentType
 
+from threadedcomments.models import ThreadedComment as Comment
+from threadedcomments.models import FreeThreadedComment as FreeComment
 
 class CommentedObjectManager(models.Manager):
     """
@@ -38,9 +39,9 @@ class CommentedObjectManager(models.Manager):
         qn = connection.ops.quote_name
         
         if free:
-            comment_opts = comment_models.FreeComment._meta
+            comment_opts = FreeComment._meta
         else:
-            comment_opts = comment_models.Comment._meta
+            comment_opts = Comment._meta
         ctype = ContentType.objects.get_for_model(self.model)
         
         subquery = """SELECT COUNT(*)

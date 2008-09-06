@@ -49,11 +49,12 @@ it run at midnight each Sunday, with default values::
 import datetime, os
 from optparse import OptionParser
 
+from threadedcomments.models import ThreadedComment as Comment
+from threadedcomments.models import FreeThreadedComment as FreeComment
 
 def delete_spam_comments(age, dry_run, type, verbose):
-    from django.contrib.comments import models
-    comment_model = { 'free': models.FreeComment,
-                      'registered': models.Comment }[type]
+    comment_model = { 'free': FreeComment,
+                      'registered': Comment }[type]
     age_cutoff = datetime.datetime.now() - datetime.timedelta(days=age)
     comments_to_delete = comment_model.objects.filter(is_public__exact=False,
                                                       submit_date__lt=age_cutoff)
