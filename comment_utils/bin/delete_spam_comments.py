@@ -27,11 +27,6 @@ spam and will be deleted.
 ``-s``, ``--settings=SETTINGS``
     Django settings module to use. This argument is required.
 
-``-t``, ``--type=TYPE``
-    The type of comment to perform deletion on; ``free`` will use the
-    ``FreeComment`` model, and ``registered`` will use the ``Comment``
-    model. Defaults to ``free`` if not specified.
-
 ``-v``, ``--verbose``
     Run verbosely, printing information to standard output about each
     comment as it is deleted.
@@ -46,28 +41,9 @@ it run at midnight each Sunday, with default values::
 
 """
 
-import datetime, os
+import os
 from optparse import OptionParser
-
-from threadedcomments.models import ThreadedComment as Comment
-from threadedcomments.models import FreeThreadedComment as FreeComment
-
-def delete_spam_comments(age, dry_run, type, verbose):
-    comment_model = { 'free': FreeComment,
-                      'registered': Comment }[type]
-    age_cutoff = datetime.datetime.now() - datetime.timedelta(days=age)
-    comments_to_delete = comment_model.objects.filter(is_public__exact=False,
-                                                      submit_date__lt=age_cutoff)
-    deleted_count = comments_to_delete.count()
-    if not dry_run:
-        for comment in comments_to_delete:
-            if verbose:
-                print "Deleting spam comment '%s' on '%s', from %s" % (comment,
-                                                                       comment.get_content_object(),
-                                                                       comment.submit_date.strftime("%Y-%m-%d"))
-            comment.delete()
-    print "Deleted %s spam comments" % deleted_count
-
+from django.core import management
 
 if __name__ == '__main__':
     usage = "usage: %prog --settings=settings [options]"
@@ -78,8 +54,6 @@ if __name__ == '__main__':
                       help="Does not delete any comments, but merely outputs the number of comments which would have been deleted.")
     parser.add_option('-s', '--settings', dest='settings', metavar='SETTINGS',
                       help="Django settings module to use. This argument is required.")
-    parser.add_option('-t', '--type', dest='type', metavar='TYPE', type='choice', choices=('free', 'registered'),
-                      help="The type of comment to perform deletion on; 'free' will use the 'FreeComment' model, and 'registered' will use the 'Comment' model. Defaults to 'free' if not specified.")
     parser.add_option('-v', '--verbose', dest='verbose', metavar='VERBOSE', action='store_true',
                       help="Run verbosely, printing information to standard output about each comment as it is deleted.")
     (options, args) = parser.parse_args()
@@ -88,7 +62,10 @@ if __name__ == '__main__':
     os.environ['DJANGO_SETTINGS_MODULE'] = options.settings
     age = options.age or 14
     dry_run = options.dry_run or False
-    comment_type = options.type or 'free'
     verbose = options.verbose or False
-    delete_spam_comments(age=age, dry_run=dry_run,
-                         type=comment_type, verbose=verbose)
+
+    if verbose:
+        verbosity = 2
+    else:
+        verbosity = 1
+    management.call_command('delete_spam_comments', age=age, dry_run=dry_run, verbosity=verbosity)
