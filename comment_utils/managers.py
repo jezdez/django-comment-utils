@@ -9,9 +9,7 @@ from django.db import connection
 from django.db import models
 from django.utils.datastructures import SortedDict
 from django.contrib.contenttypes.models import ContentType
-
-from threadedcomments.models import ThreadedComment as Comment
-from threadedcomments.models import FreeThreadedComment as FreeComment
+from django.contrib import comments
 
 class CommentedObjectManager(models.Manager):
     """
@@ -26,32 +24,25 @@ class CommentedObjectManager(models.Manager):
     managers should have those managers subclass this one.
     
     """
-    def most_commented(self, num=5, free=True):
+    def most_commented(self, num=5):
         """
         Returns the ``num`` objects of a given model with the highest
         comment counts, in order.
         
-        Pass ``free=False`` if you're using the registered comment
-        model (``Comment``) instead of the anonymous comment model
-        (``FreeComment``).
-        
         """
         qn = connection.ops.quote_name
         
-        if free:
-            comment_opts = FreeComment._meta
-        else:
-            comment_opts = Comment._meta
+        comment_opts = comments.get_model()._meta
         ctype = ContentType.objects.get_for_model(self.model)
         
         subquery = """SELECT COUNT(*)
         FROM %(comment_table)s
         WHERE %(comment_table)s.%(content_type_id)s = %%s
-        AND %(comment_table)s.%(object_id)s = %(self_table)s.%(pk)s
+        AND %(comment_table)s.%(object_pk)s = %(self_table)s.%(pk)s
         AND %(comment_table)s.%(is_public)s = %%s
         """ % { 'comment_table': qn(comment_opts.db_table),
                 'content_type_id': qn('content_type_id'),
-                'object_id': qn('object_id'),
+                'object_pk': qn('object_pk'),
                 'self_table': qn(self.model._meta.db_table),
                 'pk': qn(self.model._meta.pk.name),
                 'is_public': qn('is_public'),

@@ -73,9 +73,8 @@ from django.core.mail import send_mail
 from django.db.models import signals
 from django.db.models.base import ModelBase
 from django.template import Context, loader
+from django.contrib import comments
 from django.contrib.sites.models import Site
-from threadedcomments.models import ThreadedComment as Comment
-from threadedcomments.models import FreeThreadedComment as FreeComment
 
 class AlreadyModerated(Exception):
     """
@@ -194,6 +193,7 @@ class CommentModerator(object):
     email_notification = False
     enable_field = None
     moderate_after = None
+    moderate_field = None
     
     def __init__(self, model):
         self._model = model
@@ -395,10 +395,6 @@ class ModerateFirstTimers(CommentModerator):
     approved, while allowing all other comments to skip moderation.
     
     """
-    kwarg_builder = { Comment: lambda c: { 'user__username__exact': c.user.username },
-                      FreeComment: lambda c: { 'person_name__exact': c.person_name },
-                      }
-    
     def moderate(self, comment, content_object):
         """
         For each new comment, checks to see if the person submitting
@@ -406,8 +402,7 @@ class ModerateFirstTimers(CommentModerator):
         will be moderated.
         
         """
-        comment_class = comment.__class__
-        person_kwargs = self.kwarg_builder[comment_class](comment)
+        person_kwargs = { 'username__exact': comment.name }
         approved_comments = comment_class.objects.filter(is_public__exact=True, **person_kwargs)
         if approved_comments.count() == 0:
             return True
@@ -456,9 +451,8 @@ class Moderator(object):
         from the comment models.
         
         """
-        for model in (Comment, FreeComment):
-            signals.pre_save.connect(self.pre_save_moderation, sender=model)
-            signals.pre_save.connect(self.post_save_moderation, sender=model)
+        signals.pre_save.connect(self.pre_save_moderation, sender=comments.get_model())
+        signals.pre_save.connect(self.post_save_moderation, sender=comments.get_model())
     
     def register(self, model_or_iterable, moderation_class):
         """
@@ -501,7 +495,7 @@ class Moderator(object):
         model = instance.content_type.model_class()
         if instance.id or (model not in self._registry):
             return
-        content_object = instance.get_content_object()
+        content_object = instance.content_object
         moderation_class = self._registry[model]
         if not moderation_class.allow(instance, content_object): # Comment will get deleted in post-save hook.
             instance.moderation_disallowed = True
@@ -521,7 +515,7 @@ class Moderator(object):
         if hasattr(instance, 'moderation_disallowed'):
             instance.delete()
             return
-        self._registry[model].email(instance, instance.get_content_object())
+        self._registry[model].email(instance, instance.content_object)
 
     def comments_open(self, obj):
         """
