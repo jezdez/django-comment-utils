@@ -267,11 +267,6 @@ based on criteria you provide to it.
     Prints the number of comments which would have been deleted, but
     does not actually delete them.
 
-``-t``, ``--type``
-    The type of comment to delete; ``--type=free`` will delete
-    instance of ``FreeComment``, ``--type=registered`` will delete
-    instances of ``Comment``. Defaults to "free" if not specified.
-
 ``-v``, ``--verbose``
     If supplied, the script will run verbosely, printing a description
     of each comment as it is deleted. Regardless of the value of this

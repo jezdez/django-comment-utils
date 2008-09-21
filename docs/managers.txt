@@ -23,13 +23,6 @@ following keyword arguments::
         The maximum number of objects to return. Defaults to 5 if not
         supplied.
 
-    free
-        If ``True``, will query for objects with the most
-        ``FreeComment`` objects (unregistered comments) attached to
-        them; if ``False``, will query for objects with the most
-        ``Comment`` objects (registered comments) attached to
-        them. Defaults to ``True`` if not supplied.
-
 Because the order of the objects -- objects with higher comment counts
 should come first -- is important, this method returns a list rather
 than a ``QuerySet``. Each item in the returned list will be a
